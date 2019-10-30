@@ -20,6 +20,8 @@ dist/
 dist/*
 dist/**
 /dist/
+"dist/preview release/babylon.d.ts"
+dist/preview\ release/babylon.js
 
 # javascript files
 src/**/*.js
