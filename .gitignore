@@ -12,7 +12,14 @@ TestResults
 *.user
 *.sln.docstates
 *.map
-!dist/**/*.map
+# !dist/**/*.map
+
+
+# dist folder
+dist/
+dist/*
+dist/**
+/dist/
 
 # javascript files
 src/**/*.js
@@ -161,8 +168,8 @@ node_modules
 *.js.map
 *.js.fx
 *.d.ts
-!dist/**/*.d.ts
-!dist/**/*.js.map
+#!dist/**/*.d.ts
+#!dist/**/*.js.map
 !lib.d.ts
 !src/LibDeclarations/*.d.ts
 *.fragment.ts
@@ -174,18 +181,19 @@ node_modules
 
 # local dev
 localDev/src/*
-/dist/preview release/babylon.custom.js
-/dist/preview release/babylon.custom.max.js
+/dist/preview release/
+#/dist/preview release/babylon.custom.js
+#/dist/preview release/babylon.custom.max.js
 /localDev/src/index.js
 package-lock.json
-dist/preview release/package/
+#dist/preview release/package/
 
 # viewer dist files
 /Viewer/dist/viewer.js
 /Viewer/dist/viewer.min.js
-dist/preview release/viewer/babylon.d.ts
-dist/preview release/viewer/babylonjs.loaders.d.ts
-dist/preview release/viewer/babylon.glTF2Interface.d.ts
+#dist/preview release/viewer/babylon.d.ts
+#dist/preview release/viewer/babylonjs.loaders.d.ts
+#dist/preview release/viewer/babylon.glTF2Interface.d.ts
 Viewer/dist/viewer.max.js
 !Viewer/src/**/*.d.ts
 Viewer/tests/unit/src/**/*.js
@@ -197,3 +205,4 @@ gui/dist/
 /Viewer/tests/tsc.cmd
 /Viewer/tests/tsserver
 /Viewer/tests/tsserver.cmd
+
