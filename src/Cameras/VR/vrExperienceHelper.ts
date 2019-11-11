@@ -37,7 +37,6 @@ import "../../Gamepads/gamepadSceneComponent";
 import "../../Animations/animatable";
 import { Axis } from '../../Maths/math.axis';
 
-
 /**
  * Options to modify the vr teleportation behavior.
  */
@@ -1797,7 +1796,6 @@ export class VRExperienceHelper {
     private _workingVector = Vector3.Zero();
     private _workingQuaternion = Quaternion.Identity();
     private _workingMatrix = Matrix.Identity();
-
 
     /**
      * Time Constant Teleportation Mode
