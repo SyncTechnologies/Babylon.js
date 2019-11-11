@@ -51,15 +51,15 @@ export interface VRTeleportationOptions {
      */
     floorMeshes?: Mesh[];
     /**
-     * The teleportation mode. (default: TELEPORTATIONMODE_TIMECONSTANT)
+     * The teleportation mode. (default: TELEPORTATIONMODE_CONSTANTTIME)
      */
     teleportationMode?: number;
     /**
-     * The duration of the animation in ms, apply when animationMode is TELEPORTATIONMODE_TIMECONSTANT. (default 122ms)
+     * The duration of the animation in ms, apply when animationMode is TELEPORTATIONMODE_CONSTANTTIME. (default 122ms)
      */
     teleportationTime?: number;
     /**
-     * The speed of the animation in distance/sec, apply when animationMode is TELEPORTATIONMODE_SPEEDCONSTANT. (default 20 units / sec)
+     * The speed of the animation in distance/sec, apply when animationMode is TELEPORTATIONMODE_CONSTANTSPEED. (default 20 units / sec)
      */
     teleportationSpeed?: number;
 }
@@ -398,7 +398,7 @@ export class VRExperienceHelper {
     private _teleportActive = false;
     private _floorMeshName: string;
     private _floorMeshesCollection: Mesh[] = [];
-    private _teleportationMode: number = VRExperienceHelper.TELEPORTATIONMODE_TIMECONSTANT;
+    private _teleportationMode: number = VRExperienceHelper.TELEPORTATIONMODE_CONSTANTTIME;
     private _teleportationTime: number = 122;
     private _teleportationSpeed: number = 20;
     private _rotationAllowed: boolean = true;
@@ -1802,11 +1802,11 @@ export class VRExperienceHelper {
     /**
      * Time Constant Teleportation Mode
      */
-    public static readonly TELEPORTATIONMODE_TIMECONSTANT = 0;
+    public static readonly TELEPORTATIONMODE_CONSTANTTIME = 0;
     /**
      * Speed Constant Teleportation Mode
      */
-    public static readonly TELEPORTATIONMODE_SPEEDCONSTANT = 1;
+    public static readonly TELEPORTATIONMODE_CONSTANTSPEED = 1;
 
     /**
      * Teleports the users feet to the desired location
@@ -1836,22 +1836,16 @@ export class VRExperienceHelper {
 
         // Animations FPS
         const FPS = 90;
-        var speedRatio, lastFrame, midFrame;
-        if (this._teleportationMode == VRExperienceHelper.TELEPORTATIONMODE_SPEEDCONSTANT) {
-            // Set the default last frame
+        var speedRatio, lastFrame;
+        if (this._teleportationMode == VRExperienceHelper.TELEPORTATIONMODE_CONSTANTSPEED) {
             lastFrame = FPS;
-            // Calculate the speed ratio
             var dist = Vector3.Distance(this.currentVRCamera.position, this._workingVector);
             speedRatio = this._teleportationSpeed / dist;
         } else {
-            // teleportationMode is TELEPORTATIONMODE_TIMECONSTANT
-            // Calculate the last frame for the animation 
+            // teleportationMode is TELEPORTATIONMODE_CONSTANTTIME
             lastFrame = Math.round(this._teleportationTime * FPS / 1000);
-            // Set the default speed ratio
             speedRatio = 1;
         }
-        // Calculate the mid frame for the animation 
-        midFrame = Math.round(lastFrame / 2);
 
         // Create animation from the camera's position to the new location
         this.currentVRCamera.animations = [];
@@ -1871,6 +1865,9 @@ export class VRExperienceHelper {
         this.currentVRCamera.animations.push(animationCameraTeleportation);
 
         this._postProcessMove.animations = [];
+
+        // Calculate the mid frame for vignette animations
+        var midFrame = Math.round(lastFrame / 2);
 
         var animationPP = new Animation("animationPP", "vignetteWeight", FPS, Animation.ANIMATIONTYPE_FLOAT,
             Animation.ANIMATIONLOOPMODE_CONSTANT);

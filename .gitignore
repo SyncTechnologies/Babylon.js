@@ -17,11 +17,6 @@ TestResults
 
 # dist folder
 dist/
-dist/*
-dist/**
-/dist/
-"dist/preview release/babylon.d.ts"
-dist/preview\ release/babylon.js
 
 # javascript files
 src/**/*.js
@@ -183,7 +178,6 @@ node_modules
 
 # local dev
 localDev/src/*
-/dist/preview release/
 #/dist/preview release/babylon.custom.js
 #/dist/preview release/babylon.custom.max.js
 /localDev/src/index.js
