@@ -1495,7 +1495,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
     }
 
     /** @hidden */
-    public _getInstancesRenderList(subMeshId: number): _InstancesBatch {
+    public _getInstancesRenderList(subMeshId: number, isReplacementMode: boolean = false): _InstancesBatch {
         if (this._instanceDataStorage.isFrozen && this._instanceDataStorage.previousBatch) {
             return this._instanceDataStorage.previousBatch;
         }
@@ -1507,7 +1507,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         batchCache.renderSelf[subMeshId] = !onlyForInstances && this.isEnabled() && this.isVisible;
         batchCache.visibleInstances[subMeshId] = null;
 
-        if (this._instanceDataStorage.visibleInstances) {
+        if (this._instanceDataStorage.visibleInstances && !isReplacementMode) {
             let visibleInstances = this._instanceDataStorage.visibleInstances;
             var currentRenderId = scene.getRenderId();
             var defaultRenderId = (isInIntermediateRendering ? visibleInstances.intermediateDefaultRenderId : visibleInstances.defaultRenderId);
@@ -1518,6 +1518,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
             }
         }
         batchCache.hardwareInstancedRendering[subMeshId] =
+                        !isReplacementMode &&
                         this._instanceDataStorage.hardwareInstancedRendering
                         && (batchCache.visibleInstances[subMeshId] !== null)
                         && (batchCache.visibleInstances[subMeshId] !== undefined);
@@ -1703,7 +1704,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
 
         // Managing instances
-        var batch = this._getInstancesRenderList(subMesh._id);
+        var batch = this._getInstancesRenderList(subMesh._id, !!effectiveMeshReplacement);
 
         if (batch.mustReturn) {
             return this;
@@ -2918,6 +2919,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
 
         serializationObject.checkCollisions = this.checkCollisions;
         serializationObject.isBlocker = this.isBlocker;
+        serializationObject.overrideMaterialSideOrientation = this.overrideMaterialSideOrientation;
 
         // Parent
         if (this.parent) {
@@ -3178,6 +3180,7 @@ export class Mesh extends AbstractMesh implements IGetSetVerticesData {
         }
 
         mesh.checkCollisions = parsedMesh.checkCollisions;
+        mesh.overrideMaterialSideOrientation = parsedMesh.overrideMaterialSideOrientation;
 
         if (parsedMesh.isBlocker !== undefined) {
             mesh.isBlocker = parsedMesh.isBlocker;

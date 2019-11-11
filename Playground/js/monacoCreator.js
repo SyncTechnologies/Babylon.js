@@ -6,6 +6,8 @@ class MonacoCreator {
         this.parent = parent;
         
         this.jsEditor = null;
+        this.diffEditor = null;
+        this.diffNavigator = null;
         this.monacoMode = "javascript";
         this.blockEditorChange = false;
 
@@ -58,27 +60,8 @@ class MonacoCreator {
                 if (xhr.status === 200) {
                     require.config({ paths: { 'vs': 'node_modules/monaco-editor/min/vs' } });
                     require(['vs/editor/editor.main'], function () {
-                        const typescript = monaco.languages.typescript;
-
-                        if (this.monacoMode === "javascript") {
-                            typescript.javascriptDefaults.setCompilerOptions({
-                                noLib: false,
-                                allowNonTsExtensions: true // required to prevent Uncaught Error: Could not find file: 'inmemory://model/1'.
-                            });
-
-                            typescript.javascriptDefaults.addExtraLib(xhr.responseText, 'babylon.d.ts');
-                        } else {
-                            typescript.typescriptDefaults.setCompilerOptions({
-                                module: typescript.ModuleKind.AMD,
-                                target: typescript.ScriptTarget.ES6,
-                                noLib: false,
-                                noResolve: true,
-                                suppressOutputPathCheck: true,
-
-                                allowNonTsExtensions: true // required to prevent Uncaught Error: Could not find file: 'inmemory://model/1'.
-                            });
-                            typescript.typescriptDefaults.addExtraLib(xhr.responseText, 'babylon.d.ts');
-                        }
+                        this.setupMonacoCompilationPipeline(xhr.responseText);
+                        this.setupMonacoColorProvider();
 
                         this.parent.main.run();
                     }.bind(this));
@@ -87,6 +70,74 @@ class MonacoCreator {
         }.bind(this);
         xhr.send(null);
     };
+
+    setupMonacoCompilationPipeline(libContent) {
+        const typescript = monaco.languages.typescript;
+
+        if (this.monacoMode === "javascript") {
+            typescript.javascriptDefaults.setCompilerOptions({
+                noLib: false,
+                allowNonTsExtensions: true // required to prevent Uncaught Error: Could not find file: 'inmemory://model/1'.
+            });
+
+            typescript.javascriptDefaults.addExtraLib(libContent, 'babylon.d.ts');
+        } else {
+            typescript.typescriptDefaults.setCompilerOptions({
+                module: typescript.ModuleKind.AMD,
+                target: typescript.ScriptTarget.ES5,
+                noLib: false,
+                noResolve: true,
+                suppressOutputPathCheck: true,
+
+                allowNonTsExtensions: true // required to prevent Uncaught Error: Could not find file: 'inmemory://model/1'.
+            });
+            typescript.typescriptDefaults.addExtraLib(libContent, 'babylon.d.ts');
+        }
+    }
+
+    setupMonacoColorProvider() {
+        monaco.languages.registerColorProvider(this.monacoMode, {
+            provideColorPresentations: (model, colorInfo) => {
+                const color = colorInfo.color;
+                
+                const precision = 100.0;
+                const converter = (n) => Math.round(n * precision) / precision;
+                
+                let label;
+                if (color.alpha === undefined || color.alpha === 1.0) {
+                    label = `(${converter(color.red)}, ${converter(color.green)}, ${converter(color.blue)})`;
+                } else {
+                    label = `(${converter(color.red)}, ${converter(color.green)}, ${converter(color.blue)}, ${converter(color.alpha)})`;
+                }
+        
+                return [ { label: label } ];
+            },
+
+            provideDocumentColors: (model) => {
+                const digitGroup = "\\s*(\\d*(?:\\.\\d+)?)\\s*";
+                // we add \n{0} to workaround a Monaco bug, when setting regex options on their side
+                const regex = `BABYLON\\.Color(?:3|4)\\s*\\(${digitGroup},${digitGroup},${digitGroup}(?:,${digitGroup})?\\)\\n{0}`;
+                const matches = model.findMatches(regex, null, true, true, null, true);
+
+                const converter = (g) => g === undefined ? undefined : Number(g);
+
+                return matches.map(match => ({
+                    color: { 
+                        red: converter(match.matches[1]), 
+                        green: converter(match.matches[2]), 
+                        blue: converter(match.matches[3]),
+                        alpha: converter(match.matches[4])
+                    },
+                    range:{
+                        startLineNumber: match.range.startLineNumber,
+                        startColumn: match.range.startColumn + match.matches[0].indexOf("("),
+                        endLineNumber: match.range.startLineNumber,
+                        endColumn: match.range.endColumn
+                    }
+                }));
+            }
+        });
+    }
 
     /**
      * Function to (re)create the editor
@@ -120,53 +171,70 @@ class MonacoCreator {
         editorOptions.minimap.enabled = document.getElementById("minimapToggle1280").classList.contains('checked');
         this.jsEditor = monaco.editor.create(document.getElementById('jsEditor'), editorOptions);
 
-        monaco.languages.registerColorProvider(this.monacoMode, {
-            provideColorPresentations: (model, colorInfo) => {
-                const color = colorInfo.color;
-                
-                const precision = 100.0;
-                const converter = (n) => Math.round(n * precision) / precision;
-                
-                let label;
-                if (color.alpha === undefined || color.alpha === 1.0) {
-                    label = `(${converter(color.red)}, ${converter(color.green)}, ${converter(color.blue)})`;
-                } else {
-                    label = `(${converter(color.red)}, ${converter(color.green)}, ${converter(color.blue)}, ${converter(color.alpha)})`;
-                }
-        
-                return [ { label: label } ];
-            },
-
-            provideDocumentColors: () => {
-                const digitGroup = "\\s*(\\d*(?:\\.\\d+)?)\\s*";
-                // we add \n{0} to workaround a Monaco bug, when setting regex options on their side
-                const regex = `BABYLON\\.Color(?:3|4)\\s*\\(${digitGroup},${digitGroup},${digitGroup}(?:,${digitGroup})?\\)\\n{0}`;
-                const matches = this.jsEditor.getModel().findMatches(regex, null, true, true, null, true);
-
-                const converter = (g) => g === undefined ? undefined : Number(g);
-
-                return matches.map(match => ({
-                    color: { 
-                        red: converter(match.matches[1]), 
-                        green: converter(match.matches[2]), 
-                        blue: converter(match.matches[3]),
-                        alpha: converter(match.matches[4])
-                    },
-                    range:{
-                        startLineNumber: match.range.startLineNumber,
-                        startColumn: match.range.startColumn + match.matches[0].indexOf("("),
-                        endLineNumber: match.range.startLineNumber,
-                        endColumn: match.range.endColumn
-                    }
-                }));
-            }
-        });
-
         this.jsEditor.setValue(oldCode);
         this.jsEditor.onKeyUp(function () {
             this.parent.utils.markDirty();
         }.bind(this));
     };
+
+    detectLanguage(text) {
+        return text && text.indexOf("class Playground") >= 0 ? "typescript" : "javascript";
+    }
+
+    createDiff(left, right, diffView) {
+        const language = this.detectLanguage(left);
+        let leftModel = monaco.editor.createModel(left, language);
+        let rightModel = monaco.editor.createModel(right, language);
+        const diffOptions = {
+            contextmenu: false,
+            lineNumbers: true,
+            readOnly: true,
+            theme: this.parent.settingsPG.vsTheme,
+            contextmenu: false,
+            fontSize: this.parent.settingsPG.fontSize
+        }
+
+        this.diffEditor = monaco.editor.createDiffEditor(diffView, diffOptions);
+        this.diffEditor.setModel({
+            original: leftModel,
+            modified: rightModel
+        });
+
+        this.diffNavigator = monaco.editor.createDiffNavigator(this.diffEditor, {
+            followsCaret: true,
+            ignoreCharChanges: true
+        });
+        
+        const menuPG = this.parent.menuPG;
+        const main = this.parent.main;
+        const monacoCreator = this;
+
+        this.diffEditor.addCommand(monaco.KeyCode.Escape, function() { main.toggleDiffEditor(monacoCreator, menuPG); });
+        // Adding default VSCode bindinds for previous/next difference
+        this.diffEditor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.F5, function() { main.navigateToNext(); });
+        this.diffEditor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.F5, function() { main.navigateToPrevious(); });
+
+        this.diffEditor.focus();
+    }
+
+    disposeDiff() {
+        if (!this.diffEditor)
+            return;
+
+        // We need to properly dispose, else the monaco script editor will use those models in the editor compilation pipeline!
+        let model = this.diffEditor.getModel();
+        let leftModel = model.original;
+        let rightModel = model.modified;
+        
+        leftModel.dispose();
+        rightModel.dispose();
+
+        this.diffNavigator.dispose();
+        this.diffEditor.dispose();
+
+        this.diffNavigator = null;
+        this.diffEditor = null;
+    }
 
     /**
      * Format the code in the editor

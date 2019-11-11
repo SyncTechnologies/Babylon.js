@@ -23,6 +23,7 @@
 - Added support for dual shock gamepads ([Deltakosh](https://github.com/deltakosh/))
 - Support Vive Focus 3Dof controller ([TrevorDev](https://github.com/TrevorDev))
 - Planar positioning support for GizmoManager ([Balupg](https://github.com/balupg))
+- ScaleGizmo and AxisScaleGizmo sensitivity factor ([CedricGuillemet](https://github.com/CedricGuillemet))
 - Individual gizmos can now be enabled/disabled ([Balupg](https://github.com/balupg))
 - Unify preparation of instance attributes. Added `MaterialHelper.PushAttributesForInstances` ([MarkusBillharz](https://github.com/MarkusBillharz))
 - Added support for PBR [irradiance map](https://doc.babylonjs.com/how_to/physically_based_rendering_master#irradiance-map)
@@ -81,6 +82,8 @@
 - Bumped Monaco Editor to 0.18.1 and improved TypeScript compilation pipeline in the playground ([sailro](http://www.github.com/sailro))
 - Added support for clickable errors in the playground ([sailro](http://www.github.com/sailro))
 - Added a color picker and previewer for BABYLON.ColorX invocations in the playground ([sailro](http://www.github.com/sailro))
+- Added support for diffing snippets in the playground ([sailro](http://www.github.com/sailro))
+- Added diff navigator in the playground ([sailro](http://www.github.com/sailro))
 
 ### Meshes
 
@@ -136,12 +139,14 @@
 
 ### WebXR / WebVR
 
-- Compliance with the mozilla WebXR emulator ([RaananW](https://github.com/RaananW/))
+- Compliance with the mozilla WebXR emulator for chrome and firefox ([RaananW](https://github.com/RaananW/))
 - Use the same icon as in VR ([RaananW](https://github.com/RaananW/))
 - Gamepad object is now exposed in the WebXRController class ([RaananW](https://github.com/RaananW/))
 - If canvas does not have WebXR support the scene will still render (mainly Firefox) ([RaananW](https://github.com/RaananW/))
 - Added support for foveated rendering in Oculus Quest ([Deltakosh](https://github.com/deltakosh/))
 - Added option to configure the output canvas ([RaananW](https://github.com/RaananW/))
+- Supporting multisampled multiview rendering using the oculus multiview extension ([RaananW](https://github.com/RaananW/))
+- Preparing to deprecate supportsSession in favor of isSupportedSession ([RaananW](https://github.com/RaananW/))
 
 ### Ray
 
@@ -214,6 +219,8 @@
 - Prevent an infinite loop when calling `engine.dispose()` in a scene with multiple `SoundTracks` defined ([kirbysayshi](https://github.com/kirbysayshi))
 - Fixed missing properties in serialization / parsing of `coneParticleEmitter` ([Popov72](https://github.com/Popov72))
 - Fix a bug with exit VR and Edge ([RaananW](https://github.com/RaananW/))
+- Fixed an issue with size of texture in multiview ([RaananW](https://github.com/RaananW/))
+- Fixed Path3D (bi)normals computation for specific edge cases ([Poolminer](https://github.com/Poolminer/))
 
 ## Breaking changes
 
